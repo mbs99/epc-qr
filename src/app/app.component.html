@@ -3,8 +3,8 @@
 
     </div>
     <div class="pure-u-3-5">
-        <app-epc-data></app-epc-data>
-        <app-qrcode></app-qrcode>
+        <app-epc-data (epcDataEvent)="onEpcDataEvent($event)"></app-epc-data>
+        <app-qrcode [ecpInputEvent]="epcData"></app-qrcode>
     </div>
     <div class="pure-u-1-5">
 

@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
   FormGroup,
   Validators,
 } from '@angular/forms';
+import { EpcDto, EpcEncoding, EpcVersion } from '../dto/epc.dto';
 
 @Component({
   selector: 'app-epc-data',
@@ -19,6 +20,9 @@ export class EpcDataComponent implements OnInit {
   amountMin = 0.01;
 
   epcForm: FormGroup;
+
+  @Output()
+  epcDataEvent = new EventEmitter<EpcDto>();
 
   constructor(fb: FormBuilder) {
     this.epcForm = fb.group({
@@ -42,6 +46,16 @@ export class EpcDataComponent implements OnInit {
   ngOnInit(): void {}
 
   onSubmit() {
-    window.alert('onSubmit');
+    const eventPayload: EpcDto = {
+      bic: this.epcForm.controls['bic']?.value,
+      name: this.epcForm.controls['name']?.value,
+      iban: this.epcForm.controls['iban']?.value,
+      amount: this.epcForm.controls['amount']?.value,
+      version: EpcVersion.V2,
+      encoding: EpcEncoding.UTF8,
+      reference: this.epcForm.controls['reference'].value,
+    };
+
+    this.epcDataEvent.emit(eventPayload);
   }
 }

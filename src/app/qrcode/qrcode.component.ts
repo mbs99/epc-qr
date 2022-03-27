@@ -1,23 +1,40 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { Epc, EpcEncoding, EpcVersion } from './epc';
+import {
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  ViewChild,
+} from '@angular/core';
+import { EpcDto, EpcEncoding, EpcVersion } from '../dto/epc.dto';
+import { Epc } from './epc';
 
 @Component({
   selector: 'app-qrcode',
   templateUrl: './qrcode.component.html',
   styleUrls: ['./qrcode.component.css'],
 })
-export class QrcodeComponent implements OnInit {
+export class QrcodeComponent implements OnInit, OnChanges {
   @ViewChild('qr', { static: true })
   canvas!: ElementRef<HTMLCanvasElement>;
 
   @ViewChild('qrCodeSvg', { static: true })
   svgElement!: ElementRef<HTMLElement>;
 
+  @Input()
+  ecpInputEvent?: EpcDto;
+
   constructor() {}
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['ecpInputEvent'] && changes['ecpInputEvent'].currentValue) {
+      this.createEpc(changes['ecpInputEvent'].currentValue);
+    }
+  }
 
   ngOnInit(): void {}
 
-  async createEpc(): Promise<void> {
+  private createEpc(epcDto: EpcDto): void {
     const canvas2d = this.canvas?.nativeElement.getContext('2d');
 
     /*
@@ -34,13 +51,13 @@ export class QrcodeComponent implements OnInit {
       */
 
     const qrcode2 = Epc.Builder()
-      .withVersion(EpcVersion.V2)
-      .withAmount(35.55)
-      .withEncoding(EpcEncoding.UTF8)
-      .withBic('')
-      .withIban('DE52500105170477004907')
-      .withName('Hugo')
-      .withReference('test')
+      .withVersion(epcDto?.version ? epcDto.version : EpcVersion.V2)
+      .withAmount(epcDto.amount)
+      .withEncoding(epcDto?.encoding ? epcDto.encoding : EpcEncoding.UTF8)
+      .withBic(epcDto.bic)
+      .withIban(epcDto.iban)
+      .withName(epcDto.name)
+      .withReference(epcDto.reference)
       .build()
       .createSvgTag(true);
 
