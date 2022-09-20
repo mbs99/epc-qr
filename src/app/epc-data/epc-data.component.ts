@@ -1,8 +1,8 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   Validators,
 } from '@angular/forms';
 import { EpcDto, EpcEncoding, EpcVersion } from '../dto/epc.dto';
@@ -19,17 +19,17 @@ export class EpcDataComponent implements OnInit {
   amountMax = 1000000000;
   amountMin = 0.01;
 
-  epcForm: FormGroup;
+  epcForm: UntypedFormGroup;
 
   @Output()
   epcDataEvent = new EventEmitter<EpcDto>();
 
-  constructor(fb: FormBuilder) {
+  constructor(fb: UntypedFormBuilder) {
     this.epcForm = fb.group({
-      bic: new FormControl(''),
-      iban: new FormControl('', [Validators.required]),
-      name: new FormControl('', [Validators.required]),
-      amount: new FormControl(
+      bic: new UntypedFormControl(''),
+      iban: new UntypedFormControl('', [Validators.required]),
+      name: new UntypedFormControl('', [Validators.required]),
+      amount: new UntypedFormControl(
         '',
         Validators.compose([
           Validators.required,
@@ -37,7 +37,7 @@ export class EpcDataComponent implements OnInit {
           Validators.min(this.amountMin),
         ])
       ),
-      reference: new FormControl('', [
+      reference: new UntypedFormControl('', [
         Validators.maxLength(this.referenceMaxLength),
       ]),
     });
