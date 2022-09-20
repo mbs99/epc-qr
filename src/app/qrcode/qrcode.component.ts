@@ -15,12 +15,9 @@ import { Epc } from './epc';
   templateUrl: './qrcode.component.html',
   styleUrls: ['./qrcode.component.css'],
 })
-export class QrcodeComponent implements OnInit, OnChanges {
+export class QrcodeComponent implements OnChanges {
   @ViewChild('qr', { static: true })
   canvas!: ElementRef<HTMLCanvasElement>;
-
-  @ViewChild('qrCodeSvg', { static: true })
-  svgElement!: ElementRef<HTMLElement>;
 
   @Input()
   ecpInputEvent?: EpcDto;
@@ -32,25 +29,10 @@ export class QrcodeComponent implements OnInit, OnChanges {
     }
   }
 
-  ngOnInit(): void {}
-
   private createEpc(epcDto: EpcDto): void {
     const canvas2d = this.canvas?.nativeElement.getContext('2d');
 
-    /*
-    const qrcode = Epc.Builder()
-      .withVersion(EpcVersion.V2)
-      .withAmount(35.55)
-      .withEncoding(EpcEncoding.UTF8)
-      .withBic('')
-      .withIban('DE52500105170477004907')
-      .withName('Hugo')
-      .withReference('test')
-      .build()
-      .render(canvas2d!);
-      */
-
-    const qrcode2 = Epc.Builder()
+    Epc.Builder()
       .withVersion(epcDto?.version ? epcDto.version : EpcVersion.V2)
       .withAmount(epcDto.amount)
       .withEncoding(epcDto?.encoding ? epcDto.encoding : EpcEncoding.UTF8)
@@ -59,44 +41,59 @@ export class QrcodeComponent implements OnInit, OnChanges {
       .withName(epcDto.name)
       .withReference(epcDto.reference)
       .build()
-      .createSvgTag(true);
+      .render(canvas2d!);
 
-    this.svgElement.nativeElement.innerHTML = qrcode2;
+    this.cropImageFromCanvas(canvas2d!);
+  }
 
-    /*
-    var svgData = this.svgElement.nativeElement.outerHTML;
-    var svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-    var svgUrl = URL.createObjectURL(svgBlob);
-    var downloadLink = document.createElement('a');
-    downloadLink.href = svgUrl;
-    downloadLink.download = 'newesttree.svg';
+  private cropImageFromCanvas(ctx: CanvasRenderingContext2D) {
+    const canvas = ctx.canvas;
+    let w = canvas.width;
+    let h = canvas.height;
+    const pixelsX: number[] = [];
+    const pixelsY: number[] = [];
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let x: number, y: number, index: number;
+
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        index = (y * w + x) * 4;
+        if (!this.isWhite(imageData, index)) {
+          pixelsX.push(x);
+          pixelsY.push(y);
+        }
+      }
+    }
+    pixelsX.sort(function (a, b) {
+      return a - b;
+    });
+    pixelsY.sort(function (a, b) {
+      return a - b;
+    });
+    var n = pixelsX.length - 1;
+
+    w = 1 + pixelsX[n] - pixelsX[0] + 5;
+    h = 1 + pixelsY[n] - pixelsY[0] + 5;
+    var cut = ctx.getImageData(pixelsX[0], pixelsY[0], w, h);
+
+    canvas.width = w;
+    canvas.height = h;
+    ctx.putImageData(cut, 0, 0);
+
+    const imageUrl = canvas.toDataURL('image/png');
+    const downloadLink = document.createElement('a');
+    downloadLink.href = imageUrl;
+    downloadLink.download = 'qrcode.png';
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
-    */
-
-    const base64svg = window.btoa(
-      new XMLSerializer().serializeToString(this.svgElement.nativeElement)
-    );
-    const dataUrl = `data:image/svg+xml;base64,${base64svg}`;
-
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-
-    const w = 100;
-    const h = 100;
-
-    image.onload = () => {
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = w;
-      tempCanvas.height = h;
-      const tempContext = tempCanvas.getContext('2d');
-      tempContext?.drawImage(image, 0, 0, w, h);
-    };
-    image.src = dataUrl;
   }
 
-  test() {
-    window.alert('test');
+  private isWhite(imageData: ImageData, index: number) {
+    return (
+      imageData.data[index] != 255 &&
+      imageData.data[index + 1] != 255 &&
+      imageData.data[index + 2] != 255
+    );
   }
 }

@@ -12,7 +12,7 @@ import { EpcDto, EpcEncoding, EpcVersion } from '../dto/epc.dto';
   templateUrl: './epc-data.component.html',
   styleUrls: ['./epc-data.component.css'],
 })
-export class EpcDataComponent implements OnInit {
+export class EpcDataComponent {
   title = 'EPC Barcode Generator';
 
   referenceMaxLength = 70;
@@ -42,8 +42,6 @@ export class EpcDataComponent implements OnInit {
       ]),
     });
   }
-
-  ngOnInit(): void {}
 
   onSubmit() {
     const eventPayload: EpcDto = {
